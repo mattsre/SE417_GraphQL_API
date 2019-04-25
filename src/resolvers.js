@@ -59,18 +59,35 @@ const resolvers = {
         user: deletedUser,
       };
     },
-    loginUser: async (_, { email, pass }) => {
-      const [foundUser] = await knex('users').column('pass').where('email', email);
-      if (await bcrypt.compare(pass, foundUser.pass)) {
+    loginUser: async (_, { credentials }) => {
+      const [foundUser] = await knex('users').column('pass').where('email', credentials.email);
+      if (foundUser) {
+        if (await bcrypt.compare(credentials.pass, foundUser.pass)) {
+          return {
+            statusCode: 200,
+            message: 'Successfully logged in!',
+            loggedIn: true,
+          };
+        }
+
         return {
-          statusCode: 200,
-          message: 'Successfully logged in!',
-          loggedIn: true,
+          statusCode: 401,
+          message: 'Incorrect credentials, please try again.',
+          loggedIn: false,
         };
       }
+
+      if (foundUser === undefined) {
+        return {
+          statusCode: 401,
+          message: 'No User Account found with that email.',
+          loggedIn: false,
+        };
+      }
+
       return {
-        statusCode: 401,
-        message: 'Incorrect credentials, please try again.',
+        statusCode: 500,
+        message: 'The server encountered an error, please try again!',
         loggedIn: false,
       };
     },
