@@ -1,4 +1,5 @@
 const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 
 const saltRounds = 10;
 
@@ -45,7 +46,13 @@ const resolvers = {
       const localUser = user;
       localUser.pass = await bcrypt.hash(localUser.pass, saltRounds);
       const [createdUser] = await knex('users').returning(['userid', 'firstname', 'lastname', 'email']).insert(localUser);
+      const signedJWT = await jwt.sign({
+        userid: createdUser.userid,
+        email: createdUser.email,
+      }, process.env.JWT_SECRET, { expiresIn: '1h' });
+
       return {
+        jwt: signedJWT,
         statusCode: 200,
         message: `Successfully created user with ID: ${createdUser.userid}.`,
         user: createdUser,
@@ -61,9 +68,16 @@ const resolvers = {
     },
     loginUser: async (_, { credentials }) => {
       const [foundUser] = await knex('users').column('pass').where('email', credentials.email);
+
       if (foundUser) {
         if (await bcrypt.compare(credentials.pass, foundUser.pass)) {
+          const signedJWT = await jwt.sign({
+            userid: foundUser.userid,
+            email: foundUser.email,
+          }, process.env.JWT_SECRET, { expiresIn: '1h' });
+
           return {
+            jwt: signedJWT,
             statusCode: 200,
             message: 'Successfully logged in!',
             loggedIn: true,

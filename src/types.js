@@ -21,24 +21,28 @@ const typeDefs = gql`
   }
 
   interface BaseResponse {
+    jwt: String
     statusCode: Int
     message: String
   }
 
 
   type ManyUsersResponse implements BaseResponse {
+    jwt: String
     statusCode: Int
     message: String
     users: [User]
   }
 
   type OneUserResponse implements BaseResponse {
+    jwt: String
     statusCode: Int
     message: String
     user: User
   }
 
   type AuthResponse implements BaseResponse {
+    jwt: String
     statusCode: Int
     message: String
     loggedIn: Boolean
