@@ -49,6 +49,9 @@ const resolvers = {
       const signedJWT = await jwt.sign({
         userid: createdUser.userid,
         email: createdUser.email,
+        scope: {
+          dashboard: true,
+        },
       }, process.env.JWT_SECRET, { expiresIn: '1h' });
 
       return {
@@ -74,6 +77,9 @@ const resolvers = {
           const signedJWT = await jwt.sign({
             userid: foundUser.userid,
             email: foundUser.email,
+            scope: {
+              dashboard: true,
+            },
           }, process.env.JWT_SECRET, { expiresIn: '1h' });
 
           return {
